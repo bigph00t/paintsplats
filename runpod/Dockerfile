@@ -40,6 +40,14 @@ COPY pyproject.toml README.md /workspace/
 COPY paintsplats /workspace/paintsplats
 RUN pip3 install -e ".[gpu,runpod]" hf_transfer
 
+# nvidia-pyindex is a transitive dep of sam-3d-objects. Its setup.py edits
+# pip.conf and fails under pip's PEP 517 build isolation on modern pip
+# (>=24). Pre-install with --no-build-isolation so sam-3d-objects' resolve
+# sees it as satisfied. Also surface the index it would have added so any
+# nvidia-private wheels still resolve.
+ENV PIP_EXTRA_INDEX_URL=https://pypi.nvidia.com
+RUN pip3 install --no-build-isolation nvidia-pyindex
+
 # SAM 3D Objects and SAM 3 don't publish wheels; install from source.
 RUN git clone --depth 1 https://github.com/facebookresearch/sam-3d-objects.git /opt/sam-3d-objects \
  && pip3 install -e /opt/sam-3d-objects \
