@@ -29,6 +29,12 @@ import runpod  # type: ignore[import-not-found]
 from paintsplats.pipeline import run as run_pipeline
 from paintsplats.types import PipelineRequest
 
+# Surface HF token to huggingface_hub regardless of which name the user set.
+_hf = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+if _hf:
+    os.environ.setdefault("HF_TOKEN", _hf)
+    os.environ.setdefault("HUGGING_FACE_HUB_TOKEN", _hf)
+
 
 def _materialize_image(job_input: dict, work_dir: Path) -> Path:
     target = work_dir / "input.png"

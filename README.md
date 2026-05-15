@@ -53,29 +53,40 @@ You'll need:
 
 - A Hugging Face account with access to [`facebook/sam-3d-objects`](https://huggingface.co/facebook/sam-3d-objects) (gated — apply on the model page).
 - A RunPod account and API key.
-- ~25 GB of free space for the Docker image.
 
-```bash
-# 1. Build with HF_TOKEN baked in as a BuildKit secret (NOT in the image).
-export HF_TOKEN=hf_xxx
-DOCKER_BUILDKIT=1 docker build \
-  --secret id=hf,env=HF_TOKEN \
-  -t your-dockerhub/paintsplats:0.1.0 \
-  -f runpod/Dockerfile .
+### Use the prebuilt image (recommended)
 
-# 2. Push.
-docker push your-dockerhub/paintsplats:0.1.0
+GitHub Actions builds and publishes the image to GHCR on every push to `main` and every `v*` tag. The image is public — no auth needed for RunPod to pull it.
 
-# 3. In the RunPod console: Serverless → New Endpoint
-#    - Container image: your-dockerhub/paintsplats:0.1.0
-#    - GPU: L40S 48GB (recommended) or A40 / A6000 48GB
-#    - Container disk: 40 GB
-#    - Idle timeout: 5s   (hobby-friendly; FlashBoot covers warm restarts)
-#    - Max workers: 1     (raise if you have traffic)
-#    - Env vars: any S3_* if you want presigned URLs instead of inline base64.
+```
+ghcr.io/bigph00t/paintsplats:latest
 ```
 
-Save the new endpoint ID into `.env` as `RUNPOD_ENDPOINT_ID` and you're done.
+In the RunPod console → **Serverless → New Endpoint**:
+
+| Field | Value |
+|---|---|
+| Container image | `ghcr.io/bigph00t/paintsplats:latest` |
+| GPU | L40S 48 GB (recommended) — A40 / A6000 48 GB also fine |
+| Container disk | 40 GB |
+| Idle timeout | 5 s (FlashBoot handles warm restarts) |
+| Max workers | 1 (raise when you have traffic) |
+| **Env: `HF_TOKEN`** | Your gated-model HF token (required) |
+| Env: `S3_BUCKET`, `S3_*` | Optional — when set, returns presigned URLs instead of inline base64 |
+
+Save the new endpoint ID into `.env` as `RUNPOD_ENDPOINT_ID`. First request on a fresh worker takes 5–10 min while the model weights download to the container disk; subsequent requests are fast.
+
+### Build locally instead
+
+If you want a private build or to skip GHCR:
+
+```bash
+docker build -t paintsplats:dev -f runpod/Dockerfile .
+docker tag paintsplats:dev your-registry/paintsplats:dev
+docker push your-registry/paintsplats:dev
+```
+
+The image is ~6–8 GB (lean — weights download at runtime). No `HF_TOKEN` is needed at build time, only at runtime on the endpoint.
 
 ### GPU sizing
 
