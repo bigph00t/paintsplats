@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Secrets
+.env
+.env.local
+*.key
+
+# Generated artifacts (regenerable)
+*.ply
+*.glb
+outputs/
+checkpoints/
+weights/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

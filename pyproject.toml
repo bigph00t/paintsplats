@@ -1,0 +1,53 @@
+[project]
+name = "paintsplats"
+version = "0.1.0"
+description = "Extract figures from paintings as 3D Gaussian Splats via SAM 3D Objects on RunPod."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Paintsplats contributors" }]
+keywords = ["gaussian-splatting", "sam-3d", "3d-reconstruction", "art", "runpod"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+    "pillow>=10",
+    "numpy>=1.26",
+    "requests>=2.31",
+    "python-dotenv>=1.0",
+]
+
+# GPU/inference deps — only needed on the RunPod side or for local runs.
+# CLI clients that hit a remote endpoint do not need these.
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.5",
+    "torchvision",
+    "transformers>=4.45",
+    "diffusers>=0.30",
+    "accelerate>=0.34",
+    "huggingface-hub>=0.25",
+    "safetensors",
+    "einops",
+    "trimesh",
+]
+runpod = ["runpod>=1.7", "boto3>=1.34"]
+
+[project.scripts]
+paintsplats = "paintsplats.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/bigph00t/paintsplats"
+Issues = "https://github.com/bigph00t/paintsplats/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["paintsplats"]

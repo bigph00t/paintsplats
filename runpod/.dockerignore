@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.ply
+*.glb
+outputs
+checkpoints
+weights
+examples
+.env
+.env.local
