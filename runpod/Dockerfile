@@ -11,7 +11,7 @@
 # Or use the GitHub Actions workflow (`.github/workflows/docker.yml`) which
 # pushes ghcr.io/bigph00t/paintsplats:latest + :v* on every push / tag.
 
-FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -29,9 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /workspace
 
 # Torch first — pins the rest of the resolver.
+# sam-3d-objects pins torch*==2.5.1+cu121. Match that exactly here so its
+# install resolves; switching this also requires changing the FROM base.
 RUN pip3 install --upgrade pip \
- && pip3 install torch==2.5.1 torchvision \
-        --index-url https://download.pytorch.org/whl/cu124
+ && pip3 install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
+        --index-url https://download.pytorch.org/whl/cu121
 
 # Paintsplats source + Python deps.
 COPY pyproject.toml README.md /workspace/
