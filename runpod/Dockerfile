@@ -40,13 +40,17 @@ COPY pyproject.toml README.md /workspace/
 COPY paintsplats /workspace/paintsplats
 RUN pip3 install -e ".[gpu,runpod]" hf_transfer
 
-# nvidia-pyindex is a transitive dep of sam-3d-objects. Its setup.py edits
-# pip.conf and fails under pip's PEP 517 build isolation on modern pip
-# (>=24). Pre-install with --no-build-isolation so sam-3d-objects' resolve
-# sees it as satisfied. Also surface the index it would have added so any
-# nvidia-private wheels still resolve.
+# nvidia-pyindex is a transitive dep of sam-3d-objects. Its only purpose is
+# editing pip.conf to add nvidia's index — but its setup.py fails to build
+# on modern pip (missing appdirs / pip.conf write semantics changed). We
+# replace it with a no-op stub package so the resolver sees it as
+# installed, and surface its index via env so any nvidia wheels still
+# resolve directly.
 ENV PIP_EXTRA_INDEX_URL=https://pypi.nvidia.com
-RUN pip3 install --no-build-isolation nvidia-pyindex
+RUN mkdir -p /tmp/nvidia-pyindex-stub \
+ && printf 'from setuptools import setup\nsetup(name="nvidia-pyindex", version="1.0.9", description="stub")\n' > /tmp/nvidia-pyindex-stub/setup.py \
+ && pip3 install /tmp/nvidia-pyindex-stub \
+ && rm -rf /tmp/nvidia-pyindex-stub
 
 # SAM 3D Objects and SAM 3 don't publish wheels; install from source.
 RUN git clone --depth 1 https://github.com/facebookresearch/sam-3d-objects.git /opt/sam-3d-objects \
